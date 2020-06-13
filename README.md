@@ -16,3 +16,9 @@ Many of the APIs exposed by the raw drivers of an operating system must be used 
 - GC - Writing an operating system in a language which uses garbage collection may result in noticable micropauses during usage
 - Parallelism/Concurrency - Need a way to handle concurrency safely within the Idris code. Linear resources are still safely handled even with concurrency, so probably just need to implement some multiprocessing primitives in C and expose them safely in Idris code.
 - Practicality - having to compile all programs in _might_ be a nightmare, perhaps the OS should provide a program which ovewrites itself with a new version. 
+
+
+## Current Task
+
+- Write memory allocator (Idris2 requires dynamic memory - malloc)
+- Fork Idris2 to work on bare metal. Requires updated prelude without the majority of IO functions. Implement the stl functions which the Idris2 runtime uses.
