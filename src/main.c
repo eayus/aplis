@@ -4,6 +4,12 @@
 #include <efi/types.h>
  
 #include <stdbool.h>
+#include "print.c"
+
+
+// Number of 4KiB pages
+#define HEAP_SIZE 10
+
  
 /* I'm too lazy to type this out five times */
 #define ERR(x) if(EFI_ERROR((x))) return (x)
@@ -19,11 +25,15 @@ efi_status efi_main(efi_handle handle __attribute__((unused)), efi_system_table 
 	/* clear the screen */
 	status = st->ConOut->ClearScreen(st->ConOut);
 	ERR(status);
- 
-	/* print 'Hello World' */
-	status = st->ConOut->OutputString(st->ConOut, L"Hello World");
+
+	
+	efi_physical_addr heap;
+	status = st->BootServices->AllocatePages(AllocateAnyPages, EfiLoaderData, HEAP_SIZE, &heap);
 	ERR(status);
- 
+
+	print(st->ConOut, L"Yay!");
+
+
 	/* flush console input buffer */
 	status = st->ConIn->Reset(st->ConIn, false);
 	ERR(status);
