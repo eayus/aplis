@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cp target/x86_64-unknown-uefi/debug/aplis.efi hdd/efi/boot/bootx64.efi
+
+qemu-system-x86_64 -m 128M -drive if=pflash,format=raw,file=OVMF.fd -drive format=raw,file=fat:rw:hdd -serial stdio
