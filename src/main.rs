@@ -5,14 +5,15 @@
 #![no_main]
 
 mod serial_debug;
+mod drivers;
+mod interrupts;
 
 use uefi::prelude::*;
 use uefi::table::boot::{MemoryDescriptor, AllocateType, MemoryType};
-use uefi::proto::console::gop::{BltOp, BltPixel, GraphicsOutput, Mode};
 use core::panic::PanicInfo;
-use core::fmt::Write;
 use core::mem::size_of;
-use core::cell::UnsafeCell;
+use core::fmt::Write;
+use drivers::graphics::GraphicsDriver;
 
 fn num_pages(num_bytes: usize) -> usize {
     // Essentially perform a ceiling division of num_bytes / page_size
@@ -37,41 +38,10 @@ fn efi_main(handle: Handle, system_table: SystemTable<Boot>) -> Status {
     // of things like "redzone" or something. It's possible bugs could be caused by this, so it may
     // be worth moving to that config at some point.
 
-    //system_table.stdout().clear().unwrap().unwrap();
-
     log!("Loading Aplis...\n");
 
 
-    // GOP
-
-    let gop_cell: &UnsafeCell<GraphicsOutput> = system_table.boot_services().locate_protocol().unwrap().unwrap();
-
-    let gop: &mut GraphicsOutput = unsafe { &mut *gop_cell.get() };
-
-    //log!("{:#?}\n", gop.current_mode_info());
-
-    let mut new_mode: Option<Mode> = None;
-
-    for mode in gop.modes() {
-        let mode = mode.unwrap();
-        //log!("{:#?}\n", mode.info());
-
-        if mode.info().resolution() == (1600, 900) {
-            new_mode = Some(mode);
-        }
-    }
-
-    gop.set_mode(&new_mode.unwrap()).unwrap().unwrap();
-
-    for i in 0..500 {
-        gop.blt(BltOp::VideoFill {
-            color: BltPixel::new(255, 10, 100),
-            dest: (10 + i, 30),
-            dims: (1, 10),
-        }).unwrap().unwrap();
-        system_table.boot_services().stall(1000 * 100);
-    }
-
+    let mut graphics = GraphicsDriver::<1600, 900>::new(system_table.boot_services());
 
 
     // Memory map and exit boot services...
@@ -95,6 +65,22 @@ fn efi_main(handle: Handle, system_table: SystemTable<Boot>) -> Status {
 
 
     let (_system_table, _memory_descriptors) = system_table.exit_boot_services(handle, memory_map_buffer).unwrap().unwrap();
+
+    log!("Succesfully exited boot services.\n");
+
+    log!("About to load IDT.\n");
+    interrupts::load_idt();
+
+    log!("IDT Loaded, running breakpoint.\n");
+
+    x86_64::instructions::interrupts::int3();
+
+
+    log!("Breakpoint done, running graphics test.\n");
+
+    // Graphics test...
+    graphics.go();
+
 
     loop {}
 }

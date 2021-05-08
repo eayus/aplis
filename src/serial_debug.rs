@@ -40,7 +40,10 @@ impl Write for SerialLogger {
     }
 }
 
-#[macro_export]
+
+#[macro_export(local_inner_macros)]
 macro_rules! log {
-    ($($arg:tt)*) => (write!($crate::serial_debug::LOGGER.lock(), $($arg)*).unwrap());
+    ($($arg:tt)*) => {
+        core::write!($crate::serial_debug::LOGGER.lock(), $($arg)*).unwrap()
+    };
 }
