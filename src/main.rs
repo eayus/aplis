@@ -4,9 +4,10 @@
 #![no_std]
 #![no_main]
 
-mod serial_debug;
+mod logger;
 mod drivers;
 mod interrupts;
+mod keyboard;
 
 use uefi::prelude::*;
 use uefi::table::boot::{MemoryDescriptor, AllocateType, MemoryType};
@@ -80,6 +81,8 @@ fn efi_main(handle: Handle, system_table: SystemTable<Boot>) -> Status {
 
     // Graphics test...
     graphics.go();
+
+    log!("Key 'a' state: {}\n", keyboard::KEYBOARD.letter_a.is_pressed());
 
 
     loop {}
