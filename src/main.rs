@@ -72,13 +72,6 @@ fn efi_main(handle: Handle, system_table: SystemTable<Boot>) -> Status {
     log!("About to load IDT.\n");
     interrupts::load_idt();
 
-    log!("IDT Loaded, running breakpoint.\n");
-
-    x86_64::instructions::interrupts::int3();
-
-
-    log!("Breakpoint done, running graphics test.\n");
-
     // Graphics test...
     graphics.go();
 

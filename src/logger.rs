@@ -45,6 +45,8 @@ impl Write for Logger {
 #[macro_export(local_inner_macros)]
 macro_rules! log {
     ($($arg:tt)*) => {
-        core::write!($crate::logger::LOGGER.lock(), $($arg)*).unwrap()
+        x86_64::instructions::interrupts::without_interrupts(|| {
+            core::write!($crate::logger::LOGGER.lock(), $($arg)*).unwrap();
+        })
     };
 }
